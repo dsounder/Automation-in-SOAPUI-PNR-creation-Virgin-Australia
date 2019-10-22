@@ -1,0 +1,66 @@
+import groovy.xml.MarkupBuilder
+import com.eviware.soapui.settings.SSLSettings
+import com.eviware.soapui.SoapUI
+import java.xml.parsers.DocumentBuilderFactory
+def writer = new StringWriter()
+def xml = new MarkupBuilder(writer)
+def numberofpassengers = context.expand('${DataSource#numberofpassengers}')
+def noofpassengers = Integer.valueOf(numberofpassengers).intValue();
+def numberofflights = context.expand('${DataSource#numberofflights}')
+def noofflights = Integer.valueOf(numberofflights).intValue();
+
+xml.'soapenv:Envelope'('xmlns:soapenv' : "http://schemas.xmlsoap.org/soap/envelope/",
+'xmlns:v1r1':"http://www.openaxisgroup.org/AXISSchemaDocs/v1r1-VA",
+'xmlns:req':"http://www.openaxxisgroup.org/AXISSchemaDocs/v1r1-VA/pnrcreate/request")
+{xml.'soapenv.Header' 
+{xml.'wsse:Security'('xmlns:wsse':"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-security-secext-1.0.xsd")
+{xml.'wsse:UsernameToken'
+{xml.'wsse:Username'('test2_gsa')
+ xml.'wsse:Password'('tAVirgiN53')
+  }
+   }
+xml.'v1r1:TransactionControl'
+{
+xml.'tc'
+{
+    }
+  }
+ }
+xml.'soapenv:Body'
+{
+ xml.'v1r1:AxisTransaction'
+ {
+   xml.'req:PNRCreateRQ'('req:version':"v1r1-VA",'req:UpdateFareGroups':"Y",'req:IgnoreWarning':"Y")
+ {
+ xml.'req:CompletePNRElements'
+ {
+xml.'req:Itinerary'
+{
+//loop starts here
+for(i in 1.noofflights)
+{
+xml.'req:Flight'("req.Source":"VA-API",'req:AssociationID;:"s"+i, 'req:OriginDestinationID':"BNESYD")
+{
+ xml.'req:Departure'
+{
+'req:AirportCode'('${DataSource#departureairport'+i+'}')
+ 'req:Date'('${DataSource#flightdate'+'}')
+ 'req:Time'('${DataSource#flighttime'+i+'}')
+}
+xml.'req:Arrival'
+{
+'req:AirportCode'('${DataSource#arrivalairport'+i+'}')
+}
+xml.'req:Carrier'
+{
+'req:AirlineCode'('${#TestSuite#AirlineCode}')
+'req:FlightNumber'('${DataSource#flightnumber'+i+'}')
+}
+xml.'req:ClassOfService'('${#TestSuite#ClassOfService}')
+xml.'req:NumberInParty'('${DataSource#numberofpassengers}')
+xml.'req:ActionCode'('${#TestSuite#ActionCode}')
+   }
+  }
+}
+//ends here
+
